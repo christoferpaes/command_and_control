@@ -1,6 +1,6 @@
 # command_and_control
 Simple command and control. 
-***End Game**
+<br>***End Game***</br>
 
 Send a single command that will correspond to any and all devices connected.
 In the process of adding handling to configure the command to a particular device that is connected. 
